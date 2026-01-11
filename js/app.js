@@ -1,34 +1,75 @@
-import './i18n.js';
+// TMA Application Logic
 
-// Main Application Logic
+const tg = window.Telegram.WebApp;
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Mobile Menu Toggle
-    const mobileBtn = document.querySelector('.mobile-menu-btn');
-    const navLinks = document.querySelector('.nav-links');
+    // Initialize Telegram Web App
+    tg.expand();
 
-    if (mobileBtn && navLinks) {
-        mobileBtn.addEventListener('click', () => {
-            // Simple toggle for mobile view
-            const isFlex = navLinks.style.display === 'flex';
-            navLinks.style.display = isFlex ? 'none' : 'flex';
+    // Theme adaptation
+    document.body.style.backgroundColor = tg.themeParams.bg_color || '#F8FAFC';
+    document.body.style.color = tg.themeParams.text_color || '#1E293B';
 
-            if (!isFlex) {
-                navLinks.style.flexDirection = 'column';
-                navLinks.style.position = 'absolute';
-                navLinks.style.top = '80px';
-                navLinks.style.left = '0';
-                navLinks.style.right = '0';
-                navLinks.style.background = 'white';
-                navLinks.style.padding = '20px';
-                navLinks.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.1)';
-            } else {
-                navLinks.style = ''; // Reset inline styles
-            }
-        });
+    // MainButton Setup
+    tg.MainButton.text = "QABULGA YOZILISH";
+    tg.MainButton.textColor = "#FFFFFF";
+    tg.MainButton.color = "#2DD4BF"; // Mint color to match theme
+
+    // Form Interactions to toggle MainButton
+    const form = document.getElementById('booking-form');
+    const inputs = form.querySelectorAll('input, select');
+
+    // Check validation state
+    function checkValidation() {
+        const name = document.getElementById('name-input').value;
+        const phone = document.getElementById('phone-input').value;
+        const timeSelected = document.querySelector('#time-slots .btn-primary'); // Check if a time slot is selected (it gets btn-primary class)
+        const dateDisplay = document.getElementById('selected-date-display');
+        const isDateSelected = !dateDisplay.classList.contains('hidden');
+
+        if (name && phone.length > 10 && timeSelected && isDateSelected) {
+            tg.MainButton.show();
+        } else {
+            tg.MainButton.hide();
+        }
     }
 
-    // Smooth Scroll for Anchors
+    inputs.forEach(input => {
+        input.addEventListener('input', checkValidation);
+        input.addEventListener('change', checkValidation);
+    });
+
+    // We also need to listen to calendar/time selection updates which happen in calendar.js
+    // We can use a custom event or just export validation check if we used modules strictly, 
+    // but for simplicity, let's attach validation check to the time slot container click too.
+    document.getElementById('time-slots').addEventListener('click', () => setTimeout(checkValidation, 100)); // slight delay for class toggling
+    document.getElementById('calendar-days').addEventListener('click', () => setTimeout(checkValidation, 100));
+
+    // Handle MainButton Click
+    tg.MainButton.onClick(() => {
+        const data = {
+            service: document.getElementById('service-select').value,
+            date: document.getElementById('selected-date-display').textContent,
+            time: document.querySelector('#time-slots .btn-primary')?.textContent,
+            name: document.getElementById('name-input').value,
+            phone: document.getElementById('phone-input').value
+        };
+
+        // Validate again just in case
+        if (!data.time || !data.date) {
+            tg.showAlert("Iltimos, sana va vaqtni tanlang!");
+            return;
+        }
+
+        // Send data back to bot
+        tg.sendData(JSON.stringify(data));
+
+        // Optional: Close app
+        // tg.close(); 
+    });
+
+
+    // Smooth Scroll (Internal links)
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
@@ -37,15 +78,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 target.scrollIntoView({
                     behavior: 'smooth'
                 });
-                // Close mobile menu if open
-                if (window.innerWidth < 768) {
-                    navLinks.style.display = 'none';
-                }
             }
         });
     });
 
-    // Form Masking for Phone (Simple implementation)
+    // Form Masking for Phone (+998)
     const phoneInput = document.querySelector('input[type="tel"]');
     if (phoneInput) {
         phoneInput.addEventListener('input', (e) => {
@@ -55,6 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 e.target.value = !x[3] ? '+998 ' + x[2] : '+998 (' + x[2] + ') ' + x[3] + (x[4] ? '-' + x[4] : '') + (x[5] ? '-' + x[5] : '');
             }
+            checkValidation();
         });
     }
 });

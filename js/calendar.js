@@ -1,4 +1,4 @@
-// Calendar Logic
+// Calendar Logic (Uzbek)
 
 document.addEventListener('DOMContentLoaded', () => {
     const calendarDays = document.getElementById('calendar-days');
@@ -11,8 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedDate = null;
 
     const months = [
-        "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
-        "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"
+        "Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun",
+        "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr", "Dekabr"
     ];
 
     function renderCalendar() {
@@ -30,7 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const daysInMonth = new Date(year, month + 1, 0).getDate();
 
         // Clear existing days (keep headers)
-        // Note: The first 7 div children are headers, we remove everything after
         while (calendarDays.children.length > 7) {
             calendarDays.lastChild.remove();
         }
@@ -49,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
             dayDiv.style.cursor = 'pointer';
             dayDiv.style.padding = '8px';
             dayDiv.style.borderRadius = '8px';
-            dayDiv.style.transition = 'all 0.2s';
+            dayDiv.style.fontSize = '0.875rem'; // Smaller font for mobile
 
             // Check if past date
             const checkDate = new Date(year, month, i);
@@ -61,13 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 dayDiv.style.cursor = 'not-allowed';
             } else {
                 dayDiv.addEventListener('click', () => selectDate(i));
-                dayDiv.addEventListener('mouseover', () => dayDiv.style.backgroundColor = 'var(--color-accent-soft)');
-                dayDiv.addEventListener('mouseout', () => {
-                    // removing hover effect if not selected
-                    if (selectedDate?.getDate() !== i || selectedDate?.getMonth() !== month) {
-                        dayDiv.style.backgroundColor = 'transparent';
-                    }
-                });
             }
 
             // Highlight selected
@@ -87,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const display = document.getElementById('selected-date-display');
         display.classList.remove('hidden');
-        display.textContent = `Выбрано: ${day} ${months[currentDate.getMonth()]}`;
+        display.textContent = `Tanlandi: ${day}-${months[currentDate.getMonth()]}`;
     }
 
     function renderTimeSlots() {
@@ -97,8 +89,9 @@ document.addEventListener('DOMContentLoaded', () => {
         slots.forEach(time => {
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = 'btn btn-outline w-full text-sm';
+            btn.className = 'btn btn-outline w-full text-xs'; // Smaller text
             btn.textContent = time;
+            btn.style.padding = '8px 4px';
             btn.addEventListener('click', function () {
                 // Remove active class from all
                 document.querySelectorAll('#time-slots button').forEach(b => {
@@ -121,14 +114,6 @@ document.addEventListener('DOMContentLoaded', () => {
     nextMonthBtn.addEventListener('click', () => {
         currentDate.setMonth(currentDate.getMonth() + 1);
         renderCalendar();
-    });
-
-    // Submitting Form
-    const form = document.getElementById('booking-form');
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        alert('Спасибо! Ваша заявка отправлена. Мы скоро свяжемся с вами.');
-        form.reset();
     });
 
     renderCalendar();
